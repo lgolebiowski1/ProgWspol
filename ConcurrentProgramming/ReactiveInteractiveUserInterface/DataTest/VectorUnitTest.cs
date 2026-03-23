@@ -23,5 +23,15 @@ namespace TP.ConcurrentProgramming.Data.Test
       Assert.AreEqual<double>(XComponent, newInstance.x);
       Assert.AreEqual<double>(YComponent, newInstance.y);
     }
-  }
+
+        [TestMethod]
+        public void Vector_Constructor_SetsComponents()
+        {
+            double x = 1.23;
+            double y = 4.56;
+            Vector v = new Vector(x, y);
+            Assert.AreEqual<double>(x, v.x);
+            Assert.AreEqual<double>(y, v.y);
+        }
+    }
 }

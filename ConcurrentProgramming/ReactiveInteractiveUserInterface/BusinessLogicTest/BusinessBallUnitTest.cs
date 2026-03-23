@@ -49,6 +49,31 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
       public double y { get; init; }
     }
 
-    #endregion testing instrumentation
-  }
+        [TestMethod]
+        public void BusinessBall_Forwards_DataEvent_As_Position()
+        {
+            var dataBall = new TestDataBall();
+            var businessBall = new TP.ConcurrentProgramming.BusinessLogic.Ball(dataBall);
+            TP.ConcurrentProgramming.BusinessLogic.IPosition? reported = null;
+            int calls = 0;
+            businessBall.NewPositionNotification += (s, p) => { reported = p; calls++; };
+
+            dataBall.Raise(new TestVector(2.5, 7.5));
+
+            Assert.AreEqual<int>(1, calls);
+            Assert.IsNotNull(reported);
+            Assert.AreEqual<double>(2.5, reported!.x);
+            Assert.AreEqual<double>(7.5, reported!.y);
+        }
+
+        private class TestDataBall : Data.IBall
+        {
+            public Data.IVector Velocity { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public event EventHandler<Data.IVector>? NewPositionNotification;
+            public void Raise(Data.IVector v) => NewPositionNotification?.Invoke(this, v);
+        }
+        private record TestVector(double x, double y) : Data.IVector;
+
+        #endregion testing instrumentation
+    }
 }
