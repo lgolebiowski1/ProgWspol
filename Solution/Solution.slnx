@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="Data/Data.csproj" />
+  <Project Path="DataTest/DataTest.csproj" />
+  <Project Path="Logic/Logic.csproj" />
+  <Project Path="LogicTest/LogicTest.csproj" />
+  <Project Path="PresentationModel/PresentationModel.csproj" />
+  <Project Path="PresentationViewModel/PresentationViewModel.csproj" />
+  <Project Path="PresentationView/PresentationView.csproj" />
+</Solution>

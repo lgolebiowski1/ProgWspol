@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>TP.ConcurrentProgramming.Presentation.ViewModel</RootNamespace>
+    <AssemblyName>TP.ConcurrentProgramming.PresentationViewModel</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="WindowsBase">
+      <HintPath>/usr/lib/dotnet/packs/Microsoft.NETCore.App.Ref/10.0.6/ref/net10.0/WindowsBase.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PresentationModel\PresentationModel.csproj" />
+  </ItemGroup>
+</Project>
