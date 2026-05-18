@@ -1,4 +1,6 @@
-using TP.ConcurrentProgramming.BusinessLogic;
+using DataAPI = TP.ConcurrentProgramming.Data.DataAbstractAPI;
+using DataIVector = TP.ConcurrentProgramming.Data.IVector;
+using DataIBall = TP.ConcurrentProgramming.Data.IBall;
 
 namespace TP.ConcurrentProgramming.BusinessLogic.Test
 {
@@ -6,64 +8,98 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
     public class BusinessBallUnitTest
     {
         [TestMethod]
-        public void MoveTestMethod()
+        public void Ball_ForwardsPositionEvent()
         {
-            DataBallFixture dataBall = new();
-            Ball logicBall = new(dataBall, 800, 500, 15);
-            int calls = 0;
-            logicBall.NewPositionNotification += (s, p) => { Assert.IsNotNull(p); calls++; };
-
-            dataBall.Raise(new VectorFixture(100.0, 100.0));
-
-            Assert.AreEqual<int>(1, calls);
-        }
-
-        [TestMethod]
-        public void BusinessBall_ForwardsPosition_Correctly()
-        {
-            DataBallFixture dataBall = new();
-            Ball logicBall = new(dataBall, 800, 500, 15);
+            DataBallFixture dataBall = new(100, 100, 0, 0);
+            Ball logicBall = new(dataBall, 800, 500);
             IPosition? reported = null;
             logicBall.NewPositionNotification += (s, p) => reported = p;
 
-            dataBall.Raise(new VectorFixture(2.5, 7.5));
+            dataBall.RaisePosition(new VecFixture(120, 130));
 
             Assert.IsNotNull(reported);
-            Assert.AreEqual<double>(2.5, reported!.x);
-            Assert.AreEqual<double>(7.5, reported!.y);
+            Assert.AreEqual(120.0, reported!.x);
+            Assert.AreEqual(130.0, reported!.y);
         }
 
         [TestMethod]
-        public void BusinessBall_BouncesOffLeftWall()
+        public void Ball_BouncesOffLeftWall()
         {
-            DataBallFixture dataBall = new() { CurrentVelocity = new VectorFixture(-2.0, 0.0) };
-            Ball logicBall = new(dataBall, 800, 500, 15);
+            DataBallFixture dataBall = new(5, 100, -2, 0);
+            Ball logicBall = new(dataBall, 800, 500);
 
-            // Ball hits left wall (x < radius)
-            dataBall.Raise(new VectorFixture(5.0, 100.0));
+            dataBall.RaisePosition(new VecFixture(5, 100));
 
-            // Velocity x should be positive (reflected)
-            Assert.IsTrue(dataBall.CurrentVelocity.x > 0);
+            Assert.IsTrue(dataBall.Velocity.x > 0, "Should reflect off left wall");
+        }
+
+        [TestMethod]
+        public void Ball_BouncesOffRightWall()
+        {
+            DataBallFixture dataBall = new(795, 100, 2, 0);
+            Ball logicBall = new(dataBall, 800, 500);
+
+            dataBall.RaisePosition(new VecFixture(795, 100));
+
+            Assert.IsTrue(dataBall.Velocity.x < 0, "Should reflect off right wall");
+        }
+
+        [TestMethod]
+        public void Ball_BouncesOffTopWall()
+        {
+            DataBallFixture dataBall = new(100, 5, 0, -2);
+            Ball logicBall = new(dataBall, 800, 500);
+
+            dataBall.RaisePosition(new VecFixture(100, 5));
+
+            Assert.IsTrue(dataBall.Velocity.y > 0, "Should reflect off top wall");
+        }
+
+        [TestMethod]
+        public void Ball_BouncesOffBottomWall()
+        {
+            DataBallFixture dataBall = new(100, 495, 0, 2);
+            Ball logicBall = new(dataBall, 800, 500);
+
+            dataBall.RaisePosition(new VecFixture(100, 495));
+
+            Assert.IsTrue(dataBall.Velocity.y < 0, "Should reflect off bottom wall");
         }
 
         #region Fixtures
 
-        private class DataBallFixture : Data.IBall
+        internal class DataBallFixture : DataIBall
         {
-            public Data.IVector Velocity
+            private DataIVector _velocity;
+            private DataIVector _position;
+
+            public DataBallFixture(double x, double y, double vx, double vy)
             {
-                get => CurrentVelocity;
-                set => CurrentVelocity = value;
+                _position = new VecFixture(x, y);
+                _velocity = new VecFixture(vx, vy);
             }
 
-            internal Data.IVector CurrentVelocity = new VectorFixture(1.0, 1.0);
+            public double Radius => 15.0;
+            public double Mass => 1.0;
 
-            public event EventHandler<Data.IVector>? NewPositionNotification;
+            public DataIVector Position => _position;
 
-            internal void Raise(Data.IVector v) => NewPositionNotification?.Invoke(this, v);
+            public DataIVector Velocity
+            {
+                get => _velocity;
+                set => _velocity = value;
+            }
+
+            public event EventHandler<DataIVector>? NewPositionNotification;
+
+            public void RaisePosition(DataIVector pos)
+            {
+                _position = pos;
+                NewPositionNotification?.Invoke(this, pos);
+            }
         }
 
-        private record VectorFixture(double x, double y) : Data.IVector;
+        private record VecFixture(double x, double y) : DataIVector;
 
         #endregion
     }

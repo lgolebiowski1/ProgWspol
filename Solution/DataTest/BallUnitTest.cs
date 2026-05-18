@@ -4,42 +4,55 @@ namespace TP.ConcurrentProgramming.Data.Test
     public class BallUnitTest
     {
         [TestMethod]
-        public void ConstructorTestMethod()
+        public void Constructor_SetsPositionAndVelocity()
         {
-            Vector pos = new(0.0, 0.0);
-            Ball ball = new(pos, pos);
+            Vector pos = new(10.0, 20.0);
+            Vector vel = new(1.0, 2.0);
+            Ball ball = new(pos, vel, 15.0, 1.0);
+
+            Assert.AreEqual(10.0, ball.Position.x);
+            Assert.AreEqual(20.0, ball.Position.y);
+            Assert.AreEqual(15.0, ball.Radius);
+            Assert.AreEqual(1.0, ball.Mass);
         }
 
         [TestMethod]
-        public void MoveTestMethod()
+        public void Velocity_CanBeChanged()
         {
-            Vector initialPosition = new(10.0, 10.0);
-            Ball ball = new(initialPosition, new Vector(0.0, 0.0));
-            IVector? reported = null;
-            int calls = 0;
-            ball.NewPositionNotification += (s, p) => { reported = p; calls++; };
+            Ball ball = new(new Vector(0, 0), new Vector(1, 1), 15, 1);
+            ball.Velocity = new Vector(3.0, -2.0);
 
-            ball.Move(new Vector(0.0, 0.0));
-
-            Assert.AreEqual<int>(1, calls);
-            Assert.IsNotNull(reported);
-            Assert.AreEqual(initialPosition.x, reported!.x);
-            Assert.AreEqual(initialPosition.y, reported!.y);
+            Assert.AreEqual(3.0, ball.Velocity.x);
+            Assert.AreEqual(-2.0, ball.Velocity.y);
         }
 
         [TestMethod]
-        public void Move_UpdatesPositionByDelta()
+        public void Move_FiresPositionChangedEvent()
         {
-            Vector initial = new(10.0, 20.0);
-            Ball ball = new(initial, new Vector(0.0, 0.0));
-            IVector? reported = null;
-            ball.NewPositionNotification += (s, p) => reported = p;
+            Ball ball = new(new Vector(100, 100), new Vector(2, 2), 15, 1);
+            bool fired = false;
+            ball.NewPositionNotification += (s, e) => fired = true;
 
-            ball.Move(new Vector(1.5, -2.5));
+            ball.StartMoving();
+            Thread.Sleep(100);
+            ball.StopMoving();
+
+            Assert.IsTrue(fired);
+        }
+
+        [TestMethod]
+        public void Move_UpdatesPosition()
+        {
+            Ball ball = new(new Vector(100, 100), new Vector(1, 1), 15, 1);
+            Data.IVector? reported = null;
+            ball.NewPositionNotification += (s, e) => reported = e;
+
+            ball.StartMoving();
+            Thread.Sleep(100);
+            ball.StopMoving();
 
             Assert.IsNotNull(reported);
-            Assert.IsTrue(Math.Abs(reported!.x - 11.5) < 0.001);
-            Assert.IsTrue(Math.Abs(reported!.y - 17.5) < 0.001);
+            Assert.AreNotEqual(100.0, reported!.x);
         }
     }
 }

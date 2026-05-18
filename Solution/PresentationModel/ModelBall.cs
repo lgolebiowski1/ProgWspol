@@ -9,11 +9,15 @@ namespace TP.ConcurrentProgramming.Presentation.Model
     {
         private double _top;
         private double _left;
+        private readonly double _scaleX;
+        private readonly double _scaleY;
 
-        public ModelBall(double top, double left, LogicIBall underneathBall)
+        public ModelBall(double top, double left, LogicIBall underneathBall, double scaleX, double scaleY)
         {
             _top = top;
             _left = left;
+            _scaleX = scaleX;
+            _scaleY = scaleY;
             underneathBall.NewPositionNotification += OnNewPosition;
         }
 
@@ -41,8 +45,8 @@ namespace TP.ConcurrentProgramming.Presentation.Model
 
         private void OnNewPosition(object? sender, BusinessLogic.IPosition e)
         {
-            Top = e.y;
-            Left = e.x;
+            Top = e.y * _scaleY;
+            Left = e.x * _scaleX;
         }
 
         private void RaisePropertyChanged([CallerMemberName] string propertyName = "")

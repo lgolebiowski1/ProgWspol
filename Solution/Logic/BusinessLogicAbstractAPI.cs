@@ -5,15 +5,10 @@ namespace TP.ConcurrentProgramming.BusinessLogic
         #region Layer Factory
 
         public static BusinessLogicAbstractAPI GetBusinessLogicLayer()
-        {
-            return new BusinessLogicImplementation();
-        }
+            => new BusinessLogicImplementation();
 
-        // DI overload for testing
         public static BusinessLogicAbstractAPI GetBusinessLogicLayer(Data.DataAbstractAPI? dataLayer)
-        {
-            return new BusinessLogicImplementation(dataLayer);
-        }
+            => new BusinessLogicImplementation(dataLayer);
 
         #endregion
 
@@ -24,6 +19,7 @@ namespace TP.ConcurrentProgramming.BusinessLogic
         public abstract double BallDiameter { get; }
 
         public abstract void Start(int numberOfBalls, Action<IPosition, IBall> upperLayerHandler);
+        public abstract void Stop();
 
         #endregion
 

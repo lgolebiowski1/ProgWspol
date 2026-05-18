@@ -14,32 +14,17 @@ namespace TP.ConcurrentProgramming.Presentation.Model
         #region Factory
 
         public static ModelAbstractApi CreateModel()
-        {
-            return new ModelImplementation();
-        }
+            => new ModelImplementation();
 
-        // DI overload for testing
         public static ModelAbstractApi CreateModel(BusinessLogic.BusinessLogicAbstractAPI? logicLayer)
-        {
-            return new ModelImplementation(logicLayer);
-        }
+            => new ModelImplementation(logicLayer);
 
         #endregion
 
-        public abstract void Start(int numberOfBalls);
-
-        #region IObservable
+        public abstract void Start(int numberOfBalls, double canvasWidth, double canvasHeight);
+        public abstract void Stop();
 
         public abstract IDisposable Subscribe(IObserver<IBall> observer);
-
-        #endregion
-
-        #region IDisposable
-
         public abstract void Dispose();
-
-        #endregion
     }
-
-
 }

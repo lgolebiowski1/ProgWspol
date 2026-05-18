@@ -68,7 +68,8 @@
 
         <!-- Stół bilardowy -->
         <Border Grid.Row="1" BorderBrush="White" BorderThickness="3"
-                Background="LightBlue" Width="805" Height="505">
+                Background="LightBlue"
+                SizeChanged="TableBorder_SizeChanged">
             <ItemsControl ItemsSource="{Binding Balls}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

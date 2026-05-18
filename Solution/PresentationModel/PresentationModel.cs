@@ -19,19 +19,28 @@ namespace TP.ConcurrentProgramming.Presentation.Model
 
         #region ModelAbstractApi
 
-        public override void Start(int numberOfBalls)
+        public override void Start(int numberOfBalls, double canvasWidth, double canvasHeight)
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(ModelImplementation));
 
+            double scaleX = canvasWidth / _layerBelow.TableWidth;
+            double scaleY = canvasHeight / _layerBelow.TableHeight;
+            double scale = Math.Min(scaleX, scaleY);
+
             _layerBelow.Start(numberOfBalls, (position, ball) =>
             {
-                ModelBall newBall = new ModelBall(position.y, position.x, ball)
+                ModelBall newBall = new ModelBall(position.y * scaleY, position.x * scaleX, ball, scaleX, scaleY)
                 {
-                    Diameter = _layerBelow.BallDiameter
+                    Diameter = _layerBelow.BallDiameter * scale
                 };
                 NotifyObservers(newBall);
             });
+        }
+
+        public override void Stop()
+        {
+            _layerBelow.Stop();
         }
 
         public override IDisposable Subscribe(IObserver<IBall> observer)
@@ -97,10 +106,6 @@ namespace TP.ConcurrentProgramming.Presentation.Model
             => returnInstanceDisposed(_disposed);
 
         [Conditional("DEBUG")]
-        internal void CheckUnderneathLayerAPI(Action<UnderneathLayerAPI> returnLayer)
-            => returnLayer(_layerBelow);
-
-        [Conditional("DEBUG")]
         internal void CheckObserverCount(Action<int> returnCount)
         {
             lock (_observerLock)
@@ -108,13 +113,10 @@ namespace TP.ConcurrentProgramming.Presentation.Model
         }
 
         #endregion
-
     }
 
     public class BallChaneEventArgs : EventArgs
     {
         public IBall Ball { get; init; } = null!;
     }
-
-
 }

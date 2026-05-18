@@ -4,16 +4,16 @@ namespace TP.ConcurrentProgramming.Data.Test
     public class DataImplementationUnitTest
     {
         [TestMethod]
-        public void ConstructorTestMethod()
+        public void Constructor_NoBalls()
         {
             using DataImplementation instance = new();
             int count = -1;
             instance.CheckNumberOfBalls(x => count = x);
-            Assert.AreEqual<int>(0, count);
+            Assert.AreEqual(0, count);
         }
 
         [TestMethod]
-        public void DisposeTestMethod()
+        public void Dispose_SetsDisposedFlag()
         {
             DataImplementation instance = new();
             bool disposed = false;
@@ -23,33 +23,51 @@ namespace TP.ConcurrentProgramming.Data.Test
             instance.Dispose();
             instance.CheckObjectDisposed(x => disposed = x);
             Assert.IsTrue(disposed);
-
-            bool threw = false;
-            try { instance.Dispose(); } catch (ObjectDisposedException) { threw = true; }
-            Assert.IsTrue(threw, "Second Dispose should throw ObjectDisposedException");
-
-            threw = false;
-            try { instance.Start(1, (p, b) => { }); } catch (ObjectDisposedException) { threw = true; }
-            Assert.IsTrue(threw, "Start after Dispose should throw ObjectDisposedException");
         }
 
         [TestMethod]
-        public void StartTestMethod()
+        public void Dispose_ThrowsOnSecondCall()
+        {
+            DataImplementation instance = new();
+            instance.Dispose();
+            bool threw = false;
+            try { instance.Dispose(); } catch (ObjectDisposedException) { threw = true; }
+            Assert.IsTrue(threw);
+        }
+
+        [TestMethod]
+        public void Start_ThrowsWhenDisposed()
+        {
+            DataImplementation instance = new();
+            instance.Dispose();
+            bool threw = false;
+            try { instance.Start(1, (p, b) => { }); } catch (ObjectDisposedException) { threw = true; }
+            Assert.IsTrue(threw);
+        }
+
+        [TestMethod]
+        public void Start_CreatesBalls()
         {
             using DataImplementation instance = new();
-            int callbackCount = 0;
-            const int ballsToCreate = 10;
-
-            instance.Start(ballsToCreate, (pos, ball) =>
+            int called = 0;
+            instance.Start(5, (pos, ball) =>
             {
-                callbackCount++;
-                Assert.IsTrue(pos.x >= 0);
-                Assert.IsTrue(pos.y >= 0);
+                called++;
                 Assert.IsNotNull(ball);
+                Assert.IsTrue(pos.x > 0);
+                Assert.IsTrue(pos.y > 0);
             });
+            Assert.AreEqual(5, called);
+            instance.CheckNumberOfBalls(n => Assert.AreEqual(5, n));
+        }
 
-            Assert.AreEqual<int>(ballsToCreate, callbackCount);
-            instance.CheckNumberOfBalls(x => Assert.AreEqual<int>(ballsToCreate, x));
+        [TestMethod]
+        public void Stop_ClearsBalls()
+        {
+            using DataImplementation instance = new();
+            instance.Start(3, (p, b) => { });
+            instance.Stop();
+            instance.CheckNumberOfBalls(n => Assert.AreEqual(0, n));
         }
     }
 }

@@ -5,25 +5,17 @@ namespace TP.ConcurrentProgramming.Data
         #region Layer Factory
 
         public static DataAbstractAPI GetDataLayer()
-        {
-            return new DataImplementation();
-        }
+            => new DataImplementation();
 
-        // DI constructor for testing - allows injecting custom implementation
         public static DataAbstractAPI GetDataLayer(DataAbstractAPI? customInstance)
-        {
-            return customInstance ?? GetDataLayer();
-        }
+            => customInstance ?? GetDataLayer();
 
         #endregion
 
         #region public API
 
-        /// <summary>
-        /// Starts creating balls and invokes the callback for each one with its initial position and ball reference.
-        /// </summary>
         public abstract void Start(int numberOfBalls, Action<IVector, IBall> upperLayerHandler);
-
+        public abstract void Stop();
         public abstract double TableWidth { get; }
         public abstract double TableHeight { get; }
 
@@ -45,6 +37,9 @@ namespace TP.ConcurrentProgramming.Data
     public interface IBall
     {
         event EventHandler<IVector> NewPositionNotification;
+        IVector Position { get; }
         IVector Velocity { get; set; }
+        double Radius { get; }
+        double Mass { get; }
     }
 }

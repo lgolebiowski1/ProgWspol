@@ -5,7 +5,6 @@ namespace TP.ConcurrentProgramming.Data
     internal class DataImplementation : DataAbstractAPI
     {
         private bool _disposed = false;
-        private readonly Timer _moveTimer;
         private readonly Random _random = new();
         private readonly List<Ball> _balls = [];
         private readonly object _lock = new();
@@ -13,11 +12,7 @@ namespace TP.ConcurrentProgramming.Data
         private const double TableW = 800;
         private const double TableH = 500;
         private const double BallRadius = 15.0;
-
-        public DataImplementation()
-        {
-            _moveTimer = new Timer(Move, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(16));
-        }
+        private const double BallMass = 1.0;
 
         #region DataAbstractAPI
 
@@ -41,11 +36,25 @@ namespace TP.ConcurrentProgramming.Data
                 double speed = 2.0 + _random.NextDouble() * 3.0;
                 Vector velocity = new(Math.Cos(angle) * speed, Math.Sin(angle) * speed);
 
-                Ball newBall = new(startPos, velocity);
+                Ball newBall = new(startPos, velocity, BallRadius, BallMass);
                 lock (_lock)
                     _balls.Add(newBall);
+
                 upperLayerHandler(startPos, newBall);
+                newBall.StartMoving();
             }
+        }
+
+        public override void Stop()
+        {
+            List<Ball> snapshot;
+            lock (_lock)
+            {
+                snapshot = new List<Ball>(_balls);
+                _balls.Clear();
+            }
+            foreach (var ball in snapshot)
+                ball.Dispose();
         }
 
         #endregion
@@ -57,11 +66,7 @@ namespace TP.ConcurrentProgramming.Data
             if (!_disposed)
             {
                 if (disposing)
-                {
-                    _moveTimer.Dispose();
-                    lock (_lock)
-                        _balls.Clear();
-                }
+                    Stop();
                 _disposed = true;
             }
             else
@@ -76,31 +81,7 @@ namespace TP.ConcurrentProgramming.Data
 
         #endregion
 
-        #region private
-
-        private void Move(object? state)
-        {
-            List<Ball> snapshot;
-            lock (_lock)
-                snapshot = new List<Ball>(_balls);
-
-            foreach (Ball ball in snapshot)
-            {
-                IVector vel = ball.Velocity;
-                ball.Move(new Vector(vel.x, vel.y));
-            }
-        }
-
-        #endregion
-
         #region TestingInfrastructure
-
-        [Conditional("DEBUG")]
-        internal void CheckBallsList(Action<IEnumerable<IBall>> returnBallsList)
-        {
-            lock (_lock)
-                returnBallsList(_balls);
-        }
 
         [Conditional("DEBUG")]
         internal void CheckNumberOfBalls(Action<int> returnNumberOfBalls)
@@ -111,8 +92,13 @@ namespace TP.ConcurrentProgramming.Data
 
         [Conditional("DEBUG")]
         internal void CheckObjectDisposed(Action<bool> returnInstanceDisposed)
+            => returnInstanceDisposed(_disposed);
+
+        [Conditional("DEBUG")]
+        internal void CheckBallsList(Action<IEnumerable<IBall>> returnBallsList)
         {
-            returnInstanceDisposed(_disposed);
+            lock (_lock)
+                returnBallsList(_balls);
         }
 
         #endregion
