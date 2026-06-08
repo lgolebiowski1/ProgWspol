@@ -7,6 +7,7 @@ namespace TP.ConcurrentProgramming.Data
         public static DataAbstractAPI GetDataLayer()
             => new DataImplementation();
 
+        // DI overload — allows injecting custom implementation and logger for tests
         public static DataAbstractAPI GetDataLayer(DataAbstractAPI? customInstance)
             => customInstance ?? GetDataLayer();
 

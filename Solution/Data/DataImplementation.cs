@@ -8,11 +8,21 @@ namespace TP.ConcurrentProgramming.Data
         private readonly Random _random = new();
         private readonly List<Ball> _balls = [];
         private readonly object _lock = new();
+        private readonly IDiagnosticLogger _logger;
 
         private const double TableW = 800;
         private const double TableH = 500;
         private const double BallRadius = 15.0;
         private const double BallMass = 1.0;
+
+        // Default constructor — creates real file logger
+        internal DataImplementation() : this(new DiagnosticLogger()) { }
+
+        // DI constructor — allows injecting custom logger (e.g. NullDiagnosticLogger in tests)
+        internal DataImplementation(IDiagnosticLogger logger)
+        {
+            _logger = logger;
+        }
 
         #region DataAbstractAPI
 
@@ -36,7 +46,7 @@ namespace TP.ConcurrentProgramming.Data
                 double speed = 2.0 + _random.NextDouble() * 3.0;
                 Vector velocity = new(Math.Cos(angle) * speed, Math.Sin(angle) * speed);
 
-                Ball newBall = new(startPos, velocity, BallRadius, BallMass);
+                Ball newBall = new(startPos, velocity, BallRadius, BallMass, _logger);
                 lock (_lock)
                     _balls.Add(newBall);
 
@@ -66,7 +76,10 @@ namespace TP.ConcurrentProgramming.Data
             if (!_disposed)
             {
                 if (disposing)
+                {
                     Stop();
+                    _logger.Dispose();
+                }
                 _disposed = true;
             }
             else
@@ -100,6 +113,10 @@ namespace TP.ConcurrentProgramming.Data
             lock (_lock)
                 returnBallsList(_balls);
         }
+
+        [Conditional("DEBUG")]
+        internal void CheckLogger(Action<IDiagnosticLogger> returnLogger)
+            => returnLogger(_logger);
 
         #endregion
     }

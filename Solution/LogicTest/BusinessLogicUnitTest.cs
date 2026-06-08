@@ -21,9 +21,7 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
         {
             DisposeFixture dataFixture = new();
             BusinessLogicImplementation instance = new(dataFixture);
-
             instance.Dispose();
-
             bool disposed = false;
             instance.CheckObjectDisposed(x => disposed = x);
             Assert.IsTrue(disposed);
@@ -55,15 +53,8 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
         {
             StartFixture dataFixture = new();
             using BusinessLogicImplementation instance = new(dataFixture);
-
             int called = 0;
-            instance.Start(3, (pos, ball) =>
-            {
-                called++;
-                Assert.IsNotNull(pos);
-                Assert.IsNotNull(ball);
-            });
-
+            instance.Start(3, (pos, ball) => { called++; Assert.IsNotNull(pos); Assert.IsNotNull(ball); });
             Assert.AreEqual(3, called);
             instance.CheckBallCount(n => Assert.AreEqual(3, n));
         }
@@ -75,7 +66,6 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
             using BusinessLogicImplementation instance = new(dataFixture);
             instance.Start(2, (p, b) => { });
             instance.Stop();
-
             instance.CheckBallCount(n => Assert.AreEqual(0, n));
             Assert.IsTrue(dataFixture.StopCalled);
         }
@@ -83,20 +73,14 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
         [TestMethod]
         public void Collision_TwoBallsResolvedCorrectly()
         {
-            // Two balls moving toward each other should swap velocities (equal mass)
             CollisionFixture dataFixture = new();
             using BusinessLogicImplementation instance = new(dataFixture);
-
             int called = 0;
             instance.Start(2, (p, b) => called++);
             Assert.AreEqual(2, called);
-
-            // Trigger movement on ball A moving right toward ball B
-            dataFixture.RaiseBallA(new VecFixture(70, 100)); // close to ball B at 70,100
-
-            // After collision, ball A should be moving left (vx < 0)
-            Assert.IsTrue(dataFixture.BallAVelocity.x > 0,
-                $"Ball A should bounce left after collision, vx={dataFixture.BallAVelocity.x}");
+            dataFixture.RaiseBallA(new VecFixture(39, 100));
+            Assert.IsTrue(dataFixture.BallAVelocity.x < 0,
+                $"Ball A should bounce back, vx={dataFixture.BallAVelocity.x}");
         }
 
         #region Fixtures
@@ -153,23 +137,18 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
         {
             internal BallFixture? BallA;
             internal BallFixture? BallB;
-
             internal DataIVector BallAVelocity => BallA?.Velocity ?? new VecFixture(0, 0);
-
             public override double TableWidth => 800;
             public override double TableHeight => 500;
             public override void Dispose() { }
             public override void Stop() { }
-
             public override void Start(int n, Action<DataIVector, DataIBall> h)
             {
-                // Ball A at x=30 moving right, Ball B at x=70 stationary
                 BallA = new BallFixture(30, 100, 3, 0);
                 BallB = new BallFixture(70, 100, 0, 0);
                 h(new VecFixture(30, 100), BallA);
                 h(new VecFixture(70, 100), BallB);
             }
-
             internal void RaiseBallA(DataIVector pos) => BallA?.RaisePosition(pos);
         }
 
@@ -177,21 +156,15 @@ namespace TP.ConcurrentProgramming.BusinessLogic.Test
         {
             private DataIVector _velocity;
             private DataIVector _position;
-
             public BallFixture(double x, double y, double vx, double vy)
             {
                 _position = new VecFixture(x, y);
                 _velocity = new VecFixture(vx, vy);
             }
-
             public double Radius => 15.0;
             public double Mass => 1.0;
             public DataIVector Position => _position;
-            public DataIVector Velocity
-            {
-                get => _velocity;
-                set => _velocity = value;
-            }
+            public DataIVector Velocity { get => _velocity; set => _velocity = value; }
             public event EventHandler<DataIVector>? NewPositionNotification;
             public void RaisePosition(DataIVector pos)
             {
